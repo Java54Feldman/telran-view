@@ -66,7 +66,7 @@ public interface InputOutput {
 
 	default String readStringOptions(String prompt, String errorPrompt, HashSet<String> options) {
 		// Entered String must be one out of a given options
-		return readObjectWithPredicate(prompt, errorPrompt, Function.identity(), s -> options.stream().allMatch(option -> s.matches(option)));
+		return readObjectWithPredicate(prompt, errorPrompt, Function.identity(), options::contains);
 	}
 
 	default LocalDate readIsoDate(String prompt, String errorPrompt) {

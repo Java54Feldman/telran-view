@@ -46,11 +46,13 @@ class InputOutputTest {
 	    		".*[#$%&*.].*", // at least one special character
 	    		".{8,}" // at least 8 symbols
 	    ));
-		String password = io.readStringOptions(
-				"Enter password at least 8 symbols, at least one capital letter,\n"
+	    String password = io.readStringPredicate(
+	    		"Enter password at least 8 symbols, at least one capital letter,\n"
 				+ "at least one lower case letter, at least one digit, at least one symbol from \"#$%&*.\"", 
 				"Wrong password format.", 
-				passwordOptions);
+				//??
+				str -> str.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[#$%&*.]).{8,}$"));
+				
 		String phoneNumber = io.readStringPredicate(				
 				"Enter Israel mobile phone number", 
 				"Wrong phone number format.", 
