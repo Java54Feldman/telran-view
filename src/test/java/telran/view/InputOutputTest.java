@@ -56,7 +56,7 @@ class InputOutputTest {
 		int numberOfLogins = io.readObjectWithPredicate(
 				"Enter number of logins", 
 				"Wrong number format.", 
-				Integer::parseInt, num -> num >= 1);
+				Double::parseDouble, num -> num >= 1).intValue();
 		User user = new User(username, password, dateLastLogin, phoneNumber, numberOfLogins);
 		io.writeLine(user);
 	}
