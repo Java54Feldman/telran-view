@@ -2,8 +2,9 @@ package telran.view;
 
 
 import java.time.LocalDate;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 record User(String username, String password, LocalDate dateLastLogin,
@@ -11,6 +12,7 @@ record User(String username, String password, LocalDate dateLastLogin,
 
 class InputOutputTest {
 	InputOutput io = new SystemInputOutput();
+	private static final int LEAST_PASSWORD_LENGTH = 8;
 
 	@Test
 	void readObjectTest() {
@@ -39,19 +41,9 @@ class InputOutputTest {
 				"Enter username at least 6 ASCII letters, first Capital, others lower case", 
 				"Wrong username format.", 
 				str -> str.matches("^[A-Z][a-z]{5,}$"));
-	    HashSet<String> passwordOptions = new HashSet<>(Arrays.asList(
-	    		".*[A-Z].*", // at least one capital letter
-	    		".*[a-z].*", // at least one lower case letter
-	    		".*\\d.*", // at least one digit
-	    		".*[#$%&*.].*", // at least one special character
-	    		".{8,}" // at least 8 symbols
-	    ));
-	    String password = io.readStringPredicate(
-	    		"Enter password at least 8 symbols, at least one capital letter,\n"
-				+ "at least one lower case letter, at least one digit, at least one symbol from \"#$%&*.\"", 
-				"Wrong password format.", 
-				//??
-				str -> str.matches("^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[#$%&*.]).{8,}$"));
+		String password = io.readStringPredicate("Enter password (at least 8 symbols, at least one capital letter "
+				+ "at least one lower case letter, at least one digit, at least one symbol from \"#$*&%\"",
+				"Error ", this::passwordValidation);
 				
 		String phoneNumber = io.readStringPredicate(				
 				"Enter Israel mobile phone number", 
@@ -68,6 +60,61 @@ class InputOutputTest {
 		User user = new User(username, password, dateLastLogin, phoneNumber, numberOfLogins);
 		io.writeLine(user);
 	}
-
+	static class CharacterRuleState {
+		boolean flag;
+		Predicate<Character> predicate;
+		String errorMessage;
+		CharacterRuleState(boolean flag, Predicate<Character> predicate, String errorMessage) {
+			this.flag = flag;
+			this.predicate = predicate;
+			this.errorMessage = errorMessage;
+		}
+		
+		
+	}
+	boolean passwordValidation(String password) {
+		if (password.length() < LEAST_PASSWORD_LENGTH) {
+			throw new RuntimeException(String.format("less than %d characters", LEAST_PASSWORD_LENGTH));
+		}
+		List<CharacterRuleState> passwordRules = getPasswordCharacterRules();
+		for(char symbol: password.toCharArray()) {
+			updateRulesState(symbol, passwordRules);
+		}
+		String errorMessage = checkRulesState(passwordRules);
+		if(!errorMessage.isEmpty()) {
+			throw new RuntimeException(errorMessage);
+		}
+		return true;
+	}
+	private String checkRulesState(List<CharacterRuleState> passwordRules) {
+		
+		return passwordRules.stream().filter(r -> !r.flag)
+				.map(r -> r.errorMessage)
+				.collect(Collectors.joining(";"));
+	}
+	private void updateRulesState(char symbol, List<CharacterRuleState> passwordRules) {
+		Iterator<CharacterRuleState> it = passwordRules.iterator();
+		boolean isNotFound = true;
+		do {
+			CharacterRuleState rule = it.next();
+			if (rule.predicate.test(symbol)) {
+				rule.flag = true;
+				isNotFound = false;
+			}
+		}while(it.hasNext() && isNotFound);
+		if(isNotFound) {
+			throw new RuntimeException("disallowed symbol " + symbol);
+		}
+	}
+	private List<CharacterRuleState> getPasswordCharacterRules() {
+		String symbols = "#$*&%.-";
+		CharacterRuleState[] rulesArray = {
+			new CharacterRuleState(false, Character::isUpperCase, "no capital letter"),
+			new CharacterRuleState(false, Character::isLowerCase, "no lower case letter"),
+			new CharacterRuleState(false, Character::isDigit, "no digit letter"),
+			new CharacterRuleState(false, c -> symbols.contains("" + c), "no symbol from " + symbols),
+		};
+		return List.of(rulesArray);
+	}
 
 }
