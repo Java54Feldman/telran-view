@@ -4,7 +4,7 @@ import java.util.stream.IntStream;
 
 public class Menu implements Item {
 	private static final String CHARACTER = "*";
-	private static final int N_CHARACTER = 30;
+	private static final int N_CHARACTER = 40;
 	private static final int OFFSET = 7;
 	String name;
 	Item[] items;
@@ -36,13 +36,14 @@ public class Menu implements Item {
 					running = false;
 				}
 			} catch (RuntimeException e) {
-				io.writeLine(e.getMessage());
+				io.writeLine(e);
 			}
 		}while(running);
 
 	}
 
 	private void displayItems(InputOutput io) {
+		io.writeLine(" ".repeat(N_CHARACTER));
 		IntStream.range(0, items.length).forEach(i -> io.writeLine(String.format(
 				"%d.%s", i + 1, items[i].displayName())));
 	}

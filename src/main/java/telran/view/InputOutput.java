@@ -54,9 +54,9 @@ public interface InputOutput {
 	}
 
 	default Double readNumberRange(String prompt, String errorPrompt, double min, double max) {
-		// Entered string must be a number in range [min, max)
+		// Entered string must be a number in range [min, max]
 		// otherwise errorPrompt with cycle
-		return readObjectWithPredicate(prompt, errorPrompt, Double::parseDouble, num -> num >= min && num < max);
+		return readObjectWithPredicate(prompt, errorPrompt, Double::parseDouble, num -> num >= min && num <= max);
 	}
 
 	default String readStringPredicate(String prompt, String errorPrompt, Predicate<String> predicate) {
