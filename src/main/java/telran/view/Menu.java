@@ -36,7 +36,7 @@ public class Menu implements Item {
 					running = false;
 				}
 			} catch (RuntimeException e) {
-				io.writeLine(e);
+				io.writeLine(e.getMessage());
 			}
 		}while(running);
 
