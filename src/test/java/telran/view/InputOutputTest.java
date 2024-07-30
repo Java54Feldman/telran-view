@@ -37,28 +37,22 @@ class InputOutputTest {
 		//phone number - Israel mobile phone (regEx)
 		//dateLastLogin not after current date
 		//number of logins any positive number (>=1)
-		String username = io.readStringPredicate(
-				"Enter username at least 6 ASCII letters, first Capital, others lower case", 
-				"Wrong username format.", 
-				str -> str.matches("^[A-Z][a-z]{5,}$"));
+		String username = io.readStringPredicate("Enter username",
+				"Wrong username format (at least 6 ASCII letters - first Capital, others Lower case)",
+				str -> str.matches("[A-Z][a-z]{5,}"));
 		String password = io.readStringPredicate("Enter password (at least 8 symbols, at least one capital letter "
 				+ "at least one lower case letter, at least one digit, at least one symbol from \"#$*&%\"",
 				"Error ", this::passwordValidation);
-				
-		String phoneNumber = io.readStringPredicate(				
-				"Enter Israel mobile phone number", 
-				"Wrong phone number format.", 
-				str -> str.matches("(\\+972-?|0)5\\d-?\\d{7}"));
-		LocalDate dateLastLogin = io.readIsoDateRange(
-				"Enter date of last login in format yyyy-MM-dd", 
-				"Wrong date format.", 
-				LocalDate.MIN, LocalDate.now().plusDays(1));
-		int numberOfLogins = io.readObjectWithPredicate(
-				"Enter number of logins", 
-				"Wrong number format.", 
-				Double::parseDouble, num -> num >= 1).intValue();
-		User user = new User(username, password, dateLastLogin, phoneNumber, numberOfLogins);
-		io.writeLine(user);
+		LocalDate lastLoginDate =
+				io.readIsoDateRange("Enter Last Login Date", "Wrong date",
+						LocalDate.MIN, LocalDate.now().plusDays(1));
+		String phoneNumber =
+				io.readStringPredicate("Enter phone number", "Wrong phone number", str -> 
+				str.matches("(\\+972-?|0)5\\d-?(\\d{3}-\\d{2}-|\\d{2}-?\\d{3}-?)\\d{2}"));
+		int numberOfLogins = io.readNumberRange("Enter number of logins","must be positive integer" , 1, Integer.MAX_VALUE)
+				.intValue();
+		io.writeLine(new User(username, password, lastLoginDate,
+				phoneNumber, numberOfLogins));
 	}
 	static class CharacterRuleState {
 		boolean flag;

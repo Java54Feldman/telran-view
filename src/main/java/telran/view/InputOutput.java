@@ -56,17 +56,34 @@ public interface InputOutput {
 	default Double readNumberRange(String prompt, String errorPrompt, double min, double max) {
 		// Entered string must be a number in range [min, max]
 		// otherwise errorPrompt with cycle
-		return readObjectWithPredicate(prompt, errorPrompt, Double::parseDouble, num -> num >= min && num <= max);
+		return readObject(prompt, errorPrompt,
+				string -> {
+
+			double res = Double.parseDouble(string);
+			if (res < min) {
+				throw new IllegalArgumentException("must be not less than " + min);
+			}
+			if (res > max) {
+				throw new IllegalArgumentException("must be not greater than " + max);
+			}
+			return res;
+
+		});
 	}
 
 	default String readStringPredicate(String prompt, String errorPrompt, Predicate<String> predicate) {
 		// Entered String must match a given predicate
-		return readObjectWithPredicate(prompt, errorPrompt, Function.identity(), predicate);
+		return readObject(prompt, errorPrompt, string -> {
+			if(!predicate.test(string)) {
+				throw new IllegalArgumentException("");
+			}
+			return string;
+		});
 	}
 
 	default String readStringOptions(String prompt, String errorPrompt, HashSet<String> options) {
 		// Entered String must be one out of a given options
-		return readObjectWithPredicate(prompt, errorPrompt, Function.identity(), options::contains);
+		return readStringPredicate(prompt, errorPrompt, options::contains);
 	}
 
 	default LocalDate readIsoDate(String prompt, String errorPrompt) {
@@ -77,18 +94,15 @@ public interface InputOutput {
 	default LocalDate readIsoDateRange(String prompt, String errorPrompt, LocalDate from, LocalDate to) {
 		// Entered String must be a LocalDate in format (yyy-mm-dd)
 		// in the range (from, to) (after from and before to)
-		return readObjectWithPredicate(prompt, errorPrompt, LocalDate::parse, date -> date.isAfter(from) && date.isBefore(to));
+		return readObject(prompt, errorPrompt, string -> {
+			LocalDate res = LocalDate.parse(string);
+			if(!(res.isAfter(from)&& res.isBefore(to))) {
+				throw new IllegalArgumentException
+				(String.format("Date must be after %s before %s", from, to));
+			}
+			return res;
+		});
 	}
-	
-	default <T> T readObjectWithPredicate(String prompt, String errorPrompt, Function<String, T> mapper, Predicate<T> predicate) {
-        return readObject(prompt, errorPrompt, s -> {
-        	T result = mapper.apply(s);
-            if (predicate.test(result)) {
-                return result;
-            } else {
-                throw new IllegalArgumentException("Input does not meet the criteria");
-            }
-        });
-    }
+		   
 
 }
